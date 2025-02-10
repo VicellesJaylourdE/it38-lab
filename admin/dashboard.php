@@ -50,7 +50,7 @@ if ($stmt = $pdo->prepare($sql)) {
 
 // Fetch recent logins
 $recentLogins = [];
-$sql = "SELECT u.username, u.user_type, l.login_time FROM login_logs l JOIN users u ON l.user_id = u.id ORDER BY l.login_time DESC LIMIT 10";
+$sql = "SELECT l.log_id,u.username, u.user_type, l.login_time FROM login_logs l JOIN users u ON l.user_id = u.id ORDER BY l.login_time DESC";
 if ($stmt = $pdo->prepare($sql)) {
     if ($stmt->execute()) {
         $recentLogins = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -67,6 +67,14 @@ if ($stmt = $pdo->prepare($sql)) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css"></script>
+    <script src="https://cdn.datatables.net/2.2.1/css/dataTables.bootstrap5.css"></script>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/2.2.1/js/dataTables.js"></script>
+    <script src="https://cdn.datatables.net/2.2.1/js/dataTables.bootstrap5.js"></script>
 
     <style>
         .flex-container {
@@ -161,8 +169,7 @@ if ($stmt = $pdo->prepare($sql)) {
     </div>
 
     <div class="container">
-        <h3>User Accounts</h3>
-        <table class="table table-bordered">
+    <table id="userAccounts" class="table table-bordered" style="width:100%">
             <thead>
                 <tr>
                     <th>Username</th>
@@ -172,19 +179,43 @@ if ($stmt = $pdo->prepare($sql)) {
             </thead>
             <tbody>
                 <?php foreach ($userAccounts as $user): ?>
-                <tr>
-                    <td><?php echo htmlspecialchars($user['username']); ?></td>
-                    <td><?php echo htmlspecialchars($user['user_type']); ?></td>
-                    <td><?php echo date("Y-m-d H:i:s", strtotime($user['created_at'])); ?></td>
-                </tr>
+                    <tr>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['user_type']); ?></td>
+                        <td><?php echo date("Y-m-d H:i:s", strtotime($user['created_at'])); ?></td>
+                    </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <!--User Accounts Datatable
 
-        <h3>Recent Logins</h3>
-        <table class="table table-bordered" id="recentLoginsTable">
+        <h3>User Accounts</h3>
+        <table id="userAccounts" class="table table-bordered" style="width:100%">
             <thead>
                 <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Registration Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($userAccounts as $user): ?>
+                    <tr>
+                        <td><?php echo htmlspecialchars($user['username']); ?></td>
+                        <td><?php echo htmlspecialchars($user['user_type']); ?></td>
+                        <td><?php echo date("Y-m-d H:i:s", strtotime($user['created_at'])); ?></td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        -->
+        <hr>
+        
+        <h3>Recent Logins</h3>
+        <table id="recentLogin" class="table table-bordered" style="width:100%" id="recentLoginsTable">
+             <thead>
+                <tr>
+                    <th>No.</th>
                     <th>Username</th>
                     <th>Role</th>
                     <th>Login Timestamp</th>
@@ -194,6 +225,7 @@ if ($stmt = $pdo->prepare($sql)) {
             <tbody>
                 <?php foreach ($recentLogins as $login): ?>
                 <tr data-login-time="<?php echo htmlspecialchars($login['login_time']); ?>">
+                    <td><?php echo htmlspecialchars($login['log_id']); ?></td>
                     <td><?php echo htmlspecialchars($login['username']); ?></td>
                     <td><?php echo htmlspecialchars($login['user_type']); ?></td>
                     <td><?php echo date("Y-m-d H:i:s", strtotime($login['login_time'])); ?></td>
@@ -202,10 +234,11 @@ if ($stmt = $pdo->prepare($sql)) {
                 <?php endforeach; ?>
             </tbody>
         </table>
+
         <button class="btn btn-primary" onclick="printToPDF()">Print to PDF</button>
     </div>
-    <!--End Dashboard-->             
-
+    <!--End Dashboard-->   
+    
 <script>
     function printToPDF() {
         // Select the entire content between Start and End Dashboard tags
@@ -247,13 +280,17 @@ if ($stmt = $pdo->prepare($sql)) {
 
     // Apply the time elapsed to the table rows
     window.onload = function() {
-        const rows = document.querySelectorAll('#recentLoginsTable tbody tr');
+        const rows = document.querySelectorAll('#recentLogin tbody tr');
         rows.forEach(row => {
             const loginTime = row.getAttribute('data-login-time');
             const timeElapsedStr = timeElapsed(loginTime);
             row.querySelector('.time-elapsed').textContent = timeElapsedStr;
         });
     }
+
+
+    let table1 = new DataTable('#userAccounts');
+    let table2 = new DataTable('#recentLogin');
 </script>
 </body>
 </html>
